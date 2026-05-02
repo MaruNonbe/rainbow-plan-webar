@@ -320,7 +320,13 @@
       <a-asset-item id="rainbowModel" src="assets/rainbow_plan_character.glb"></a-asset-item>
     </a-assets>
 
-    <a-marker preset="hiro" id="marker">
+    <a-marker
+      preset="hiro"
+      id="marker"
+      smooth="true"
+      smooth-count="12"
+      smooth-tolerance="0.02"
+      smooth-threshold="6">
       <a-entity id="root" position="0 0 0">
         <a-entity
           id="character"
@@ -672,12 +678,18 @@ Each small act of sorting food waste helps nurture the soil, support local food,
       statusText.textContent = "音声を停止しました";
     });
 
-    document.getElementById("marker").addEventListener("markerFound", () => {
-      statusText.textContent = "マーカーを認識しました";
+    const markerEl = document.getElementById("marker");
+    let markerSeenCount = 0;
+    let markerLostCount = 0;
+
+    markerEl.addEventListener("markerFound", () => {
+      markerSeenCount += 1;
+      statusText.textContent = `マーカーを認識しました (${markerSeenCount})`;
     });
 
-    document.getElementById("marker").addEventListener("markerLost", () => {
-      statusText.textContent = "Hiroマーカーをもう一度カメラに映してください";
+    markerEl.addEventListener("markerLost", () => {
+      markerLostCount += 1;
+      statusText.textContent = `マーカー追跡が外れました (${markerLostCount})`;
     });
 
     window.addEventListener("pagehide", stopSpeak);
