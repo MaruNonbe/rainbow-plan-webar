@@ -317,14 +317,21 @@
           - Y軸180度回転で顔をこちらに向ける
           - 少し大きく表示
         -->
-        <a-entity
-          id="character"
-          gltf-model="#rainbowCharacter"
-          position="0 0 0"
-          rotation=" 0 -90 0"
-          scale="0.55 0.55 0.55"
-          animation__body="property: position; dir: alternate; dur: 1800; easing: easeInOutSine; loop: true; to: 0 0.05 0"
-        ></a-entity>
+<a-entity
+  id="characterRoot"
+  position="0 0 0"
+  rotation="0 0 0"
+  scale="0.55 0.55 0.55"
+  animation__body="property: position; dir: alternate; dur: 1800; easing: easeInOutSine; loop: true; to: 0 0.05 0"
+>
+  <a-entity
+    id="character"
+    gltf-model="#rainbowCharacter"
+    position="0 0 0"
+    rotation="0 0 0"
+    scale="1 1 1"
+  ></a-entity>
+</a-entity>
 
         <!--
           AR空間内の半透明プレートは今回は非表示です。
