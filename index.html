@@ -37,9 +37,31 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    a-scene,
+    a-scene canvas,
+    canvas.a-canvas {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: transparent !important;
+    }
+
     a-scene {
-      width: 100vw;
-      height: 100vh;
+      z-index: 1;
+    }
+
+    body > video,
+    video#arjs-video,
+    .arjs-video {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: cover !important;
+      z-index: 0 !important;
+      transform: none !important;
+      background: #050806 !important;
     }
 
     #startPanel {
@@ -287,8 +309,10 @@
   </main>
 
   <a-scene
+    id="arScene"
     embedded
-    renderer="logarithmicDepthBuffer: true; antialias: true; alpha: true"
+    background="transparent: true"
+    renderer="logarithmicDepthBuffer: true; antialias: true; alpha: true; colorManagement: true"
     vr-mode-ui="enabled: false"
     arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;">
 
@@ -419,6 +443,44 @@ Each small act of sorting food waste helps nurture the soil, support local food,
     const arText = document.getElementById("arText");
     const statusText = document.getElementById("statusText");
     const characterEl = document.getElementById("character");
+    const arScene = document.getElementById("arScene");
+
+    function forceCameraLayout() {
+      const videos = document.querySelectorAll("video");
+      videos.forEach((video) => {
+        video.setAttribute("playsinline", "");
+        video.setAttribute("webkit-playsinline", "");
+        video.muted = true;
+        Object.assign(video.style, {
+          position: "fixed",
+          inset: "0",
+          width: "100vw",
+          height: "100vh",
+          objectFit: "cover",
+          zIndex: "0",
+          transform: "none",
+          background: "#050806"
+        });
+      });
+
+      const canvas = document.querySelector(".a-canvas");
+      if (canvas) {
+        Object.assign(canvas.style, {
+          position: "fixed",
+          inset: "0",
+          width: "100vw",
+          height: "100vh",
+          background: "transparent",
+          zIndex: "1"
+        });
+      }
+
+      if (arScene && arScene.renderer) {
+        if (arScene.object3D) arScene.object3D.background = null;
+        arScene.renderer.setClearColor(0x000000, 0);
+        arScene.renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+    }
 
     function applyContent(lang) {
       currentLang = lang;
@@ -540,6 +602,9 @@ Each small act of sorting food waste helps nurture the soil, support local food,
     document.getElementById("startButton").addEventListener("click", () => {
       document.getElementById("startPanel").style.display = "none";
       applyContent(currentLang);
+      forceCameraLayout();
+      window.setTimeout(forceCameraLayout, 250);
+      window.setTimeout(forceCameraLayout, 1000);
       statusText.textContent = "Hiroマーカーをカメラに映してください";
     });
 
@@ -565,6 +630,10 @@ Each small act of sorting food waste helps nurture the soil, support local food,
     });
 
     window.addEventListener("pagehide", stopSpeak);
+    window.addEventListener("resize", forceCameraLayout);
+    window.addEventListener("orientationchange", () => window.setTimeout(forceCameraLayout, 250));
+    arScene.addEventListener("loaded", forceCameraLayout);
+    arScene.addEventListener("render-target-loaded", forceCameraLayout);
     applyContent("ja");
   </script>
 </body>
