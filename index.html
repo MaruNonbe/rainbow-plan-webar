@@ -327,8 +327,11 @@
           gltf-model="#rainbowModel"
           position="0 0 0"
           rotation="0 0 0"
-          scale="0.35 0.35 0.35">
+          scale="1 1 1">
         </a-entity>
+
+        <a-entity light="type: ambient; color: #ffffff; intensity: 1.8"></a-entity>
+        <a-entity light="type: directional; color: #ffffff; intensity: 1.4" position="0 2 1"></a-entity>
 
         <a-plane
           id="arPlate"
@@ -482,6 +485,53 @@ Each small act of sorting food waste helps nurture the soil, support local food,
       }
     }
 
+    function normalizeCharacterModel(event) {
+      const model = event.detail && event.detail.model;
+      if (!model || typeof THREE === "undefined") {
+        findMouthControls();
+        return;
+      }
+
+      model.updateMatrixWorld(true);
+      let box = new THREE.Box3().setFromObject(model);
+      const size = new THREE.Vector3();
+      const center = new THREE.Vector3();
+      box.getSize(size);
+      box.getCenter(center);
+
+      const maxDimension = Math.max(size.x, size.y, size.z);
+      if (Number.isFinite(maxDimension) && maxDimension > 0) {
+        const targetMaxDimension = 1.15;
+        const scale = targetMaxDimension / maxDimension;
+        model.scale.multiplyScalar(scale);
+      }
+
+      model.updateMatrixWorld(true);
+      box = new THREE.Box3().setFromObject(model);
+      box.getCenter(center);
+      model.position.x -= center.x;
+      model.position.z -= center.z;
+      model.position.y -= box.min.y;
+      model.position.y += 0.02;
+
+      model.traverse((node) => {
+        if (node.isMesh) {
+          node.visible = true;
+          node.frustumCulled = false;
+          if (node.material) {
+            const materials = Array.isArray(node.material) ? node.material : [node.material];
+            materials.forEach((material) => {
+              material.side = THREE.DoubleSide;
+              material.needsUpdate = true;
+            });
+          }
+        }
+      });
+
+      statusText.textContent = "GLBモデルを表示しました";
+      findMouthControls();
+    }
+
     function applyContent(lang) {
       currentLang = lang;
       const content = contents[lang];
@@ -594,9 +644,10 @@ Each small act of sorting food waste helps nurture the soil, support local food,
       window.speechSynthesis.speak(utterance);
     }
 
-    characterEl.addEventListener("model-loaded", findMouthControls);
-    characterEl.addEventListener("model-error", () => {
-      statusText.textContent = "GLBモデルを読み込めませんでした";
+    characterEl.addEventListener("model-loaded", normalizeCharacterModel);
+    characterEl.addEventListener("model-error", (event) => {
+      console.error("GLB model error", event.detail);
+      statusText.textContent = "GLBモデルを読み込めませんでした: assets/rainbow_plan_character.glb";
     });
 
     document.getElementById("startButton").addEventListener("click", () => {
