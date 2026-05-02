@@ -1,343 +1,363 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <title>レインボープランながい WebAR</title>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-
-  <!-- A-Frame -->
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-
-  <!-- AR.js for A-Frame -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#11281f" />
+  <title>長井市レインボープラン WebAR</title>
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.min.js"></script>
-
   <style>
-    /* =========================================================
-       Basic
-    ========================================================= */
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      width: 100%;
-      height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans",
-        "Yu Gothic", "Meiryo", sans-serif;
-      background: transparent !important;
-      color: #fff;
+    :root {
+      color-scheme: dark;
+      --leaf: #2fc26b;
+      --leaf-deep: #0f5b39;
+      --soil: #5d4934;
+      --cream: #f5f0df;
+      --ink: #f9fff8;
+      --panel: rgba(9, 22, 18, 0.76);
+      --line: rgba(255, 255, 255, 0.22);
     }
 
-    /* =========================================================
-       iOS / Android WebAR 黒画面対策
-       AR.js camera video forced visible
-    ========================================================= */
-    video,
-    video.arjs-video,
-    #arjs-video,
-    body > video {
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #050806;
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Yu Gothic UI", Meiryo, sans-serif;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    a-scene,
+    a-scene canvas,
+    canvas.a-canvas {
       position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: transparent !important;
+    }
+
+    a-scene {
+      z-index: 1;
+    }
+
+    body > video,
+    video#arjs-video,
+    .arjs-video {
+      position: fixed !important;
+      inset: 0 !important;
       width: 100vw !important;
       height: 100vh !important;
       object-fit: cover !important;
       z-index: 0 !important;
-      display: block !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-      background: transparent !important;
+      transform: none !important;
+      background: #050806 !important;
     }
 
-    a-scene,
-    .a-canvas,
-    canvas {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      z-index: 1 !important;
-      background: transparent !important;
-    }
-
-    /* =========================================================
-       UI
-    ========================================================= */
-    #ui {
+    #startPanel {
       position: fixed;
       inset: 0;
-      z-index: 20;
-      pointer-events: none;
-      color: #fff;
+      z-index: 30;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background:
+        linear-gradient(180deg, rgba(12, 45, 36, 0.92), rgba(3, 6, 5, 0.9)),
+        url("design/rainbow_plan_sustainable_future_interface.png") center / cover;
     }
 
-    #statusBox {
+    #startPanel::before {
+      content: "";
       position: absolute;
-      top: 16px;
-      left: 16px;
-      max-width: 72vw;
-      padding: 10px 14px;
-      border-radius: 12px;
-      background: rgba(0, 0, 0, 0.55);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      color: #fff;
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 1.4;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      inset: 0;
+      background: rgba(0, 0, 0, 0.34);
     }
 
-    #markerLabel {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      padding: 12px 16px;
-      border-radius: 12px;
-      background: #28c46b;
-      color: #082615;
+    #startCard {
+      position: relative;
+      width: min(560px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      background: rgba(8, 24, 18, 0.86);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.36);
+      backdrop-filter: blur(12px);
+    }
+
+    #startCard h1 {
+      margin: 0 0 10px;
+      font-size: clamp(24px, 6vw, 38px);
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    #startCard p {
+      margin: 10px 0 0;
+      color: rgba(249, 255, 248, 0.88);
+      font-size: 15px;
+      line-height: 1.75;
+    }
+
+    #startActions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .primaryButton,
+    .secondaryLink {
+      min-height: 48px;
+      border-radius: 8px;
       font-size: 16px;
-      font-weight: 800;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      font-weight: 700;
+      text-align: center;
     }
 
-    #operationPanel {
-      position: absolute;
+    .primaryButton {
+      border: 0;
+      color: #052516;
+      background: var(--leaf);
+    }
+
+    .secondaryLink {
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    #status {
+      position: fixed;
+      top: max(10px, env(safe-area-inset-top));
       left: 10px;
       right: 10px;
-      bottom: 12px;
-      pointer-events: auto;
-    }
-
-    #buttonRow {
+      z-index: 12;
       display: flex;
-      gap: 8px;
       align-items: center;
-      margin-bottom: 10px;
-      overflow-x: auto;
-      padding-bottom: 2px;
+      justify-content: space-between;
+      gap: 10px;
+      pointer-events: none;
     }
 
-    #buttonRow button {
-      flex: 0 0 auto;
-      border: none;
-      border-radius: 12px;
-      padding: 12px 14px;
-      min-width: 74px;
-      font-size: 15px;
-      font-weight: 800;
-      color: #fff;
-      background: rgba(0, 0, 0, 0.62);
-      border: 1px solid rgba(255,255,255,0.25);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.3);
-    }
-
-    #buttonRow button.active {
-      background: #2dcc70;
-      color: #082615;
-      border-color: rgba(255,255,255,0.35);
-    }
-
-    #buttonRow button:active {
-      transform: scale(0.97);
-    }
-
-    #textPanel {
-      max-height: 31vh;
-      overflow: hidden;
-      border-radius: 12px;
-      background: rgba(0, 28, 20, 0.72);
-      border: 1px solid rgba(180, 255, 224, 0.32);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.38);
+    #statusText,
+    #markerBadge {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.5);
+      font-size: 12px;
+      line-height: 1.35;
       backdrop-filter: blur(8px);
     }
 
-    #textHeader {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 14px;
-      border-bottom: 1px solid rgba(180, 255, 224, 0.22);
-      color: #eafff5;
-      font-size: 15px;
-      font-weight: 900;
+    #markerBadge {
+      white-space: nowrap;
+      color: #0b2518;
+      background: rgba(47, 194, 107, 0.9);
+      font-weight: 700;
     }
 
-    #textLang {
-      font-size: 13px;
-      opacity: 0.95;
-    }
-
-    #scrollWindow {
-      position: relative;
-      height: 22vh;
-      overflow: hidden;
-      padding: 0 18px;
-    }
-
-    #scrollContent {
-      position: absolute;
-      left: 18px;
-      right: 18px;
-      top: 100%;
-      white-space: pre-line;
-      color: #fff;
-      font-size: 16px;
-      font-weight: 650;
-      line-height: 1.95;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.45);
-    }
-
-    #loading {
+    #ui {
       position: fixed;
-      inset: 0;
-      z-index: 40;
+      left: 10px;
+      right: 10px;
+      bottom: max(10px, env(safe-area-inset-bottom));
+      z-index: 11;
+      display: grid;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    #controls {
       display: flex;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(135deg, #e9fff1, #d7f5ff);
-      color: #1d6b49;
-      font-weight: 900;
-      text-align: center;
-      padding: 20px;
-      line-height: 1.7;
-    }
-
-    #loading.hide {
-      display: none;
-    }
-
-    #cameraFixButton {
-      position: absolute;
-      top: 70px;
-      right: 16px;
-      z-index: 25;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
       pointer-events: auto;
-      border: none;
-      border-radius: 12px;
-      padding: 9px 12px;
-      background: rgba(255,255,255,0.88);
-      color: #174d35;
-      font-weight: 800;
+      scrollbar-width: none;
+    }
+
+    #controls::-webkit-scrollbar {
       display: none;
     }
 
-    /* 小さい画面対策 */
-    @media (max-height: 680px) {
-      #scrollWindow {
-        height: 19vh;
+    .btn {
+      flex: 0 0 auto;
+      min-width: 44px;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 11px;
+      color: var(--ink);
+      background: rgba(0, 0, 0, 0.54);
+      font-size: 13px;
+      font-weight: 700;
+      backdrop-filter: blur(8px);
+    }
+
+    .btn.active {
+      color: #062315;
+      background: var(--leaf);
+      border-color: rgba(47, 194, 107, 0.9);
+    }
+
+    #captionPlate {
+      height: min(34vh, 190px);
+      min-height: 132px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      pointer-events: auto;
+    }
+
+    #captionHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      height: 38px;
+      padding: 0 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      color: rgba(249, 255, 248, 0.86);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    #captionText {
+      padding: 12px 14px 18px;
+      white-space: pre-line;
+      font-size: 15px;
+      line-height: 1.75;
+      animation: scrollUp 42s linear infinite;
+    }
+
+    @keyframes scrollUp {
+      0% { transform: translateY(100%); }
+      8% { transform: translateY(0); }
+      92% { transform: translateY(calc(-100% + 110px)); }
+      100% { transform: translateY(calc(-100% + 110px)); }
+    }
+
+    @media (min-width: 720px) {
+      #ui {
+        left: 24px;
+        right: auto;
+        width: min(520px, calc(100vw - 48px));
       }
 
-      #textPanel {
-        max-height: 28vh;
+      #status {
+        left: 24px;
+        right: 24px;
       }
 
-      #buttonRow button {
-        padding: 10px 12px;
-        font-size: 14px;
-        min-width: 66px;
-      }
-
-      #scrollContent {
-        font-size: 15px;
-        line-height: 1.8;
+      #startActions {
+        grid-template-columns: 1fr 1fr;
       }
     }
   </style>
 </head>
-
 <body>
-
-  <div id="loading">
-    <div>
-      🌈 レインボープラン WebAR<br>
-      カメラの使用を許可してください<br>
-      <span style="font-size:13px; font-weight:600;">
-        Hiroマーカーを写すとキャラクターが表示されます
-      </span>
-    </div>
+  <div id="startPanel">
+    <section id="startCard" aria-labelledby="startTitle">
+      <h1 id="startTitle">長井市レインボープラン WebAR</h1>
+      <p>カメラで Hiro マーカーを読み取ると、AR キャラクターがレインボープランを紹介します。字幕と言語切り替え、音声読み上げ、簡易的な口パクに対応しています。</p>
+      <p>スマートフォンでは HTTPS 配信で開いてください。起動後、別画面や印刷物に表示した Hiro マーカーをカメラに映します。</p>
+      <div id="startActions">
+        <button id="startButton" class="primaryButton" type="button">ARを開始</button>
+        <a class="secondaryLink" href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" target="_blank" rel="noopener">Hiroマーカーを開く</a>
+      </div>
+    </section>
   </div>
 
-  <div id="ui">
-    <div id="statusBox">起動中...</div>
-    <div id="markerLabel">Hiro marker</div>
-    <button id="cameraFixButton" onclick="forceShowCameraVideo()">カメラ再表示</button>
-
-    <div id="operationPanel">
-      <div id="buttonRow">
-        <button id="btn-ja" class="active" onclick="setLanguage('ja')">日本語</button>
-        <button id="btn-en" onclick="setLanguage('en')">English</button>
-        <button id="btn-zh" onclick="setLanguage('zh')">中文</button>
-        <button id="btn-ko" onclick="setLanguage('ko')">한국어</button>
-        <button id="btn-speak" onclick="speakCurrentText()">音声</button>
-        <button id="btn-stop" onclick="stopSpeech()">停止</button>
-      </div>
-
-      <div id="textPanel">
-        <div id="textHeader">
-          <span id="textTitle">レインボープランとは</span>
-          <span id="textLang">日本語</span>
-        </div>
-
-        <div id="scrollWindow">
-          <div id="scrollContent"></div>
-        </div>
-      </div>
-    </div>
+  <div id="status" aria-live="polite">
+    <div id="statusText">準備中</div>
+    <div id="markerBadge">Hiro marker</div>
   </div>
+
+  <main id="ui">
+    <div id="controls" aria-label="操作">
+      <button class="btn active" type="button" data-lang="ja">日本語</button>
+      <button class="btn" type="button" data-lang="en">English</button>
+      <button class="btn" type="button" data-lang="zh">中文</button>
+      <button class="btn" type="button" data-lang="ko">한국어</button>
+      <button class="btn" type="button" id="speakBtn">音声</button>
+      <button class="btn" type="button" id="stopBtn">停止</button>
+    </div>
+    <section id="captionPlate" aria-label="説明字幕">
+      <div id="captionHeader">
+        <span id="captionTitle">レインボープランとは</span>
+        <span id="captionLang">日本語</span>
+      </div>
+      <div id="captionText"></div>
+    </section>
+  </main>
 
   <a-scene
+    id="arScene"
     embedded
+    background="transparent: true"
+    renderer="logarithmicDepthBuffer: true; antialias: true; alpha: true; colorManagement: true"
     vr-mode-ui="enabled: false"
-    renderer="antialias: true; alpha: true"
-    arjs="sourceType: webcam; debugUIEnabled: false;"
-  >
+    arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;">
 
-    <a-assets>
-      <a-asset-item
-        id="rainbowCharacter"
-        src="assets/rainbow_plan_character.glb"
-      ></a-asset-item>
+    <a-assets timeout="30000">
+      <a-asset-item id="rainbowModel" src="assets/rainbow_plan_character.glb"></a-asset-item>
     </a-assets>
 
-    <!-- Hiroマーカー -->
-    <a-marker preset="hiro" id="hiroMarker">
+    <a-marker
+      preset="hiro"
+      id="marker"
+      smooth="true"
+      smooth-count="12"
+      smooth-tolerance="0.02"
+      smooth-threshold="6">
+      <a-entity id="root" position="0 0 0">
+        <a-entity
+          id="character"
+          gltf-model="#rainbowModel"
+          position="0 0 0"
+          rotation="0 180 0"
+          scale="1 1 1">
+        </a-entity>
 
-      <!-- 全体の親 -->
-      <a-entity id="arRoot" position="0 0 0" rotation="0 0 0">
+        <a-entity light="type: ambient; color: #ffffff; intensity: 1.8"></a-entity>
+        <a-entity light="type: directional; color: #ffffff; intensity: 1.4" position="0 2 1"></a-entity>
 
-        <!--
-          キャラクター本体
-
-          今回の修正：
-          - 透明プレートは非表示
-          - キャラクターを中央へ
-          - Y軸180度回転で顔をこちらに向ける
-          - 少し大きく表示
-        -->
-<a-entity
-  id="characterRoot"
-  position="0 0 0"
-  rotation="0 0 0"
-  scale="0.55 0.55 0.55"
-  animation__body="property: position; dir: alternate; dur: 1800; easing: easeInOutSine; loop: true; to: 0 0.05 0"
->
-  <a-entity
-    id="character"
-    gltf-model="#rainbowCharacter"
-    position="0 0 0"
-    rotation="0 0 0"
-    scale="1 1 1"
-  ></a-entity>
-</a-entity>
-
-        <!--
-          AR空間内の半透明プレートは今回は非表示です。
-          説明文は画面下の固定パネルに表示します。
-        -->
-
+        <a-plane
+          id="arPlate"
+          position="0 1.25 -0.55"
+          rotation="-15 0 0"
+          width="2.25"
+          height="0.88"
+          color="#0b2b22"
+          opacity="0.68">
+        </a-plane>
+        <a-text
+          id="arText"
+          value=""
+          position="0 0.92 -0.54"
+          rotation="-15 0 0"
+          align="center"
+          width="1.9"
+          color="#ffffff"
+          wrap-count="22">
+        </a-text>
       </a-entity>
     </a-marker>
 
@@ -345,470 +365,339 @@
   </a-scene>
 
   <script>
-    /* =========================================================
-       Text data
-    ========================================================= */
-    const LANG_DATA = {
+    const contents = {
       ja: {
-        langLabel: "日本語",
+        langCode: "ja-JP",
+        label: "日本語",
         title: "レインボープランとは",
-        voiceLang: "ja-JP",
-        text:
-`レインボープランは、正式には「台所と農業をつなぐながい計画」と呼ばれています。
+        text: `こんにちは。私は長井市の循環を案内するレインボープランのガイドです。
 
-家庭の台所から出る生ごみを、ただ捨てるのではなく、地域の資源として分別して集めます。
+レインボープランは、正式には「台所と農業をつなぐながい計画」と呼ばれています。
 
-集められた生ごみはコンポストセンターでたい肥になり、長井市の田畑へ戻されます。
+家庭の台所から出る生ごみを、ただ捨てるのではなく、地域の資源として分別して集めます。集められた生ごみはコンポストセンターでたい肥になり、長井市の田畑へ戻されます。
 
 そのたい肥で土が豊かになり、米や野菜が育ち、また地域の食卓へ戻ってきます。
 
 台所、たい肥、土、農産物、そして暮らしが、ひとつの輪としてつながる。これがレインボープランの大きな特徴です。
 
-ごみを減らすだけでなく、市民、農家、行政が一緒になって、自然と食と暮らしを未来へつなぐ取り組みです。`
-      },
+この取り組みは、ごみを減らすだけではありません。市民、農家、行政が力を合わせ、地域の自然と暮らしを未来へつなぐまちづくりでもあります。
 
+小さな分別が、土を育て、食を育て、長井市の未来を育てています。`
+      },
       en: {
-        langLabel: "English",
+        langCode: "en-US",
+        label: "English",
         title: "What is the Rainbow Plan?",
-        voiceLang: "en-US",
-        text:
-`The Rainbow Plan is a local circular project in Nagai City.
+        text: `Hello. I am your guide to Nagai City's Rainbow Plan.
 
-It connects everyday kitchens with local farming.
+The Rainbow Plan is officially known as Nagai's plan to connect the kitchen and agriculture.
 
-Food waste from homes is not simply thrown away. It is collected as a valuable local resource.
+Food waste from household kitchens is not simply thrown away. It is sorted, collected as a local resource, and turned into compost at the city compost center.
 
-The collected food waste is turned into compost and returned to the fields of Nagai.
+That compost returns to fields in Nagai, enriching the soil. Rice and vegetables grown in that soil come back to local tables.
 
-That compost enriches the soil. Rice and vegetables grown in healthy soil come back to local dining tables.
+In this way, kitchens, compost, soil, farm products, and daily life are connected in one circular system.
 
-Kitchen, compost, soil, crops, and daily life are connected in one circular system.
+The Rainbow Plan is more than waste reduction. It is a community project created by citizens, farmers, and the local government working together.
 
-The Rainbow Plan is not only about reducing waste. It is a community effort by citizens, farmers, and the local government to protect nature and pass on a better future.`
+Each small act of sorting food waste helps nurture the soil, support local food, and pass Nagai's environment on to the future.`
       },
-
       zh: {
-        langLabel: "中文",
+        langCode: "zh-CN",
+        label: "中文",
         title: "什么是彩虹计划？",
-        voiceLang: "zh-CN",
-        text:
-`彩虹计划是长井市的循环型地区建设项目。
+        text: `大家好。我是介绍长井市彩虹计划的 AR 向导。
 
-它把家庭厨房和当地农业连接起来。
+彩虹计划的正式名称是“连接厨房与农业的长井计划”。
 
-家庭中产生的厨余垃圾，不是简单地丢弃，而是作为当地资源进行分类和收集。
+家庭厨房产生的厨余垃圾不会被简单丢弃，而是作为地区资源进行分类收集，并在堆肥中心制成堆肥。
 
-收集到的厨余垃圾会被制成堆肥，并回到长井市的农田。
+这些堆肥会回到长井市的农田，帮助培育肥沃的土壤。由这种土壤种出的米和蔬菜，又会回到当地人的餐桌。
 
-这些堆肥让土壤更加肥沃。肥沃土地上种出的米和蔬菜，又回到当地的餐桌。
+也就是说，厨房、堆肥、土壤、农产品和日常生活，被连接成一个循环。
 
-厨房、堆肥、土壤、农作物和日常生活，形成了一个循环的圆环。
+彩虹计划不只是减少垃圾的活动，也是市民、农家和行政共同推进的地方建设。
 
-彩虹计划不仅是减少垃圾的活动，也是市民、农家和行政共同保护自然、把更美好未来传给下一代的努力。`
+每一次小小的分类，都会滋养土壤，支持当地食物，并把长井市的自然与生活传向未来。`
       },
-
       ko: {
-        langLabel: "한국어",
+        langCode: "ko-KR",
+        label: "한국어",
         title: "레인보우 플랜이란?",
-        voiceLang: "ko-KR",
-        text:
-`레인보우 플랜은 나가이시의 지역 순환 프로젝트입니다.
+        text: `안녕하세요. 저는 나가이시의 레인보우 플랜을 소개하는 AR 안내자입니다.
 
-가정의 부엌과 지역 농업을 연결하는 계획입니다.
+레인보우 플랜의 정식 명칭은 “부엌과 농업을 잇는 나가이 계획”입니다.
 
-가정에서 나오는 음식물 쓰레기를 그냥 버리지 않고, 지역의 소중한 자원으로 분리하여 모읍니다.
+가정의 부엌에서 나오는 음식물 쓰레기를 단순히 버리지 않고, 지역의 자원으로 분리해 모읍니다. 모인 음식물 쓰레기는 퇴비 센터에서 퇴비가 됩니다.
 
-모아진 음식물 쓰레기는 퇴비가 되어 나가이시의 논과 밭으로 돌아갑니다.
+그 퇴비는 나가이시의 논과 밭으로 돌아가 건강한 흙을 만들고, 그 흙에서 자란 쌀과 채소는 다시 지역의 식탁으로 돌아옵니다.
 
-그 퇴비는 흙을 건강하게 만들고, 건강한 흙에서 자란 쌀과 채소는 다시 지역의 식탁으로 돌아옵니다.
+이렇게 부엌, 퇴비, 흙, 농산물, 그리고 생활이 하나의 순환으로 이어집니다.
 
-부엌, 퇴비, 흙, 농작물, 그리고 생활이 하나의 순환 고리로 이어집니다.
+레인보우 플랜은 쓰레기를 줄이는 활동을 넘어, 시민과 농가, 행정이 함께 만드는 지역 만들기입니다.
 
-레인보우 플랜은 쓰레기를 줄이는 활동만이 아니라, 시민, 농가, 행정이 함께 자연을 지키고 더 나은 미래를 다음 세대에 전하는 노력입니다.`
+작은 분리배출이 흙을 기르고, 먹거리를 기르며, 나가이시의 미래를 기르고 있습니다.`
       }
     };
 
-    /* =========================================================
-       State
-    ========================================================= */
     let currentLang = "ja";
-    let currentUtterance = null;
     let speaking = false;
+    let mouthTimer = null;
+    let mouthTargets = [];
+    let fallbackPulseObject = null;
 
-    let mouthTarget = null;
-    let originalMouthScale = null;
+    const captionText = document.getElementById("captionText");
+    const captionTitle = document.getElementById("captionTitle");
+    const captionLang = document.getElementById("captionLang");
+    const arText = document.getElementById("arText");
+    const statusText = document.getElementById("statusText");
+    const characterEl = document.getElementById("character");
+    const arScene = document.getElementById("arScene");
 
-    let scrollAnimationId = null;
-    let scrollY = 0;
-
-    const loading = document.getElementById("loading");
-    const statusBox = document.getElementById("statusBox");
-    const textTitle = document.getElementById("textTitle");
-    const textLang = document.getElementById("textLang");
-    const scrollContent = document.getElementById("scrollContent");
-    const character = document.getElementById("character");
-    const hiroMarker = document.getElementById("hiroMarker");
-
-    /* =========================================================
-       Startup
-    ========================================================= */
-    window.addEventListener("load", () => {
-      setStatus("起動しました。カメラを確認中...");
-      setLanguage("ja");
-
-      setTimeout(() => {
-        if (loading) loading.classList.add("hide");
-      }, 1200);
-
-      setTimeout(forceShowCameraVideo, 500);
-      setTimeout(forceShowCameraVideo, 1500);
-      setTimeout(forceShowCameraVideo, 3000);
-    });
-
-    document.addEventListener("DOMContentLoaded", () => {
-      setTimeout(forceShowCameraVideo, 500);
-      setTimeout(forceShowCameraVideo, 1500);
-      setTimeout(forceShowCameraVideo, 3000);
-    });
-
-    /* =========================================================
-       Marker events
-    ========================================================= */
-    if (hiroMarker) {
-      hiroMarker.addEventListener("markerFound", () => {
-        setStatus("マーカーを認識しました");
+    function forceCameraLayout() {
+      const videos = document.querySelectorAll("video");
+      videos.forEach((video) => {
+        video.setAttribute("playsinline", "");
+        video.setAttribute("webkit-playsinline", "");
+        video.muted = true;
+        Object.assign(video.style, {
+          position: "fixed",
+          inset: "0",
+          width: "100vw",
+          height: "100vh",
+          objectFit: "cover",
+          zIndex: "0",
+          transform: "none",
+          background: "#050806"
+        });
       });
 
-      hiroMarker.addEventListener("markerLost", () => {
-        setStatus("マーカーを探しています");
-      });
-    }
-
-    /* =========================================================
-       Language
-    ========================================================= */
-    function setLanguage(lang) {
-      currentLang = lang;
-      const data = LANG_DATA[lang];
-
-      if (!data) return;
-
-      if (textTitle) textTitle.textContent = data.title;
-      if (textLang) textLang.textContent = data.langLabel;
-      if (scrollContent) scrollContent.textContent = data.text;
-
-      document.querySelectorAll("#buttonRow button").forEach(btn => {
-        btn.classList.remove("active");
-      });
-
-      const activeButton = document.getElementById("btn-" + lang);
-      if (activeButton) {
-        activeButton.classList.add("active");
+      const canvas = document.querySelector(".a-canvas");
+      if (canvas) {
+        Object.assign(canvas.style, {
+          position: "fixed",
+          inset: "0",
+          width: "100vw",
+          height: "100vh",
+          background: "transparent",
+          zIndex: "1"
+        });
       }
 
-      stopSpeech();
-      startTextScroll();
-
-      setStatus(`${data.langLabel} に切り替えました`);
+      if (arScene && arScene.renderer) {
+        if (arScene.object3D) arScene.object3D.background = null;
+        arScene.renderer.setClearColor(0x000000, 0);
+        arScene.renderer.setSize(window.innerWidth, window.innerHeight);
+      }
     }
 
-    /* =========================================================
-       Screen text scroll
-    ========================================================= */
-    function startTextScroll() {
-      if (!scrollContent) return;
-
-      if (scrollAnimationId) {
-        cancelAnimationFrame(scrollAnimationId);
-      }
-
-      scrollY = 100;
-      scrollContent.style.top = scrollY + "%";
-
-      function animateScroll() {
-        scrollY -= 0.035;
-        scrollContent.style.top = scrollY + "%";
-
-        const rect = scrollContent.getBoundingClientRect();
-        const parentRect = scrollContent.parentElement.getBoundingClientRect();
-
-        if (rect.bottom < parentRect.top) {
-          scrollY = 100;
-        }
-
-        scrollAnimationId = requestAnimationFrame(animateScroll);
-      }
-
-      scrollAnimationId = requestAnimationFrame(animateScroll);
-    }
-
-    /* =========================================================
-       Speech
-    ========================================================= */
-    function speakCurrentText() {
-      const data = LANG_DATA[currentLang];
-      if (!data) return;
-
-      stopSpeech();
-
-      if (!("speechSynthesis" in window)) {
-        setStatus("このブラウザは音声読み上げに対応していません");
+    function normalizeCharacterModel(event) {
+      const model = event.detail && event.detail.model;
+      if (!model || typeof THREE === "undefined") {
+        findMouthControls();
         return;
       }
 
-      const utterance = new SpeechSynthesisUtterance(data.text);
-      utterance.lang = data.voiceLang;
-      utterance.rate = 0.9;
-      utterance.pitch = 1.05;
-      utterance.volume = 1.0;
+      model.updateMatrixWorld(true);
+      let box = new THREE.Box3().setFromObject(model);
+      const size = new THREE.Vector3();
+      const center = new THREE.Vector3();
+      box.getSize(size);
+      box.getCenter(center);
 
-      utterance.onstart = () => {
-        speaking = true;
-        setStatus("音声説明中...");
-        startMouthMotion();
-      };
-
-      utterance.onend = () => {
-        speaking = false;
-        resetMouth();
-        setStatus("音声説明が終了しました");
-      };
-
-      utterance.onerror = () => {
-        speaking = false;
-        resetMouth();
-        setStatus("音声再生でエラーが発生しました");
-      };
-
-      currentUtterance = utterance;
-      window.speechSynthesis.speak(utterance);
-    }
-
-    function stopSpeech() {
-      speaking = false;
-
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
+      const maxDimension = Math.max(size.x, size.y, size.z);
+      if (Number.isFinite(maxDimension) && maxDimension > 0) {
+        const targetMaxDimension = 1.15;
+        const scale = targetMaxDimension / maxDimension;
+        model.scale.multiplyScalar(scale);
       }
 
-      resetMouth();
+      model.updateMatrixWorld(true);
+      box = new THREE.Box3().setFromObject(model);
+      box.getCenter(center);
+      model.position.x -= center.x;
+      model.position.z -= center.z;
+      model.position.y -= box.min.y;
+      model.position.y += 0.02;
+
+      model.traverse((node) => {
+        if (node.isMesh) {
+          node.visible = true;
+          node.frustumCulled = false;
+          if (node.material) {
+            const materials = Array.isArray(node.material) ? node.material : [node.material];
+            materials.forEach((material) => {
+              material.side = THREE.DoubleSide;
+              material.needsUpdate = true;
+            });
+          }
+        }
+      });
+
+      statusText.textContent = "GLBモデルを表示しました";
+      findMouthControls();
     }
 
-    /* =========================================================
-       Mouth motion
-    ========================================================= */
-    if (character) {
-      character.addEventListener("model-loaded", () => {
-        setStatus("モデル読込完了：口パク対象を確認中");
+    function applyContent(lang) {
+      currentLang = lang;
+      const content = contents[lang];
+      captionTitle.textContent = content.title;
+      captionLang.textContent = content.label;
+      captionText.style.animation = "none";
+      captionText.textContent = content.text;
+      void captionText.offsetWidth;
+      captionText.style.animation = "scrollUp 42s linear infinite";
+      arText.setAttribute("value", `${content.title}\n${content.text.slice(0, 115)}...`);
+      document.querySelectorAll("[data-lang]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.lang === lang);
+      });
+    }
 
-        const object3D = character.getObject3D("mesh");
+    function findMouthControls() {
+      mouthTargets = [];
+      fallbackPulseObject = null;
+      const object3D = characterEl.getObject3D("mesh");
+      if (!object3D) return;
 
-        if (!object3D) {
-          setStatus("モデル読込完了：ただしmesh取得なし");
-          return;
+      object3D.traverse((node) => {
+        if (node.isMesh && node.morphTargetDictionary && node.morphTargetInfluences) {
+          Object.keys(node.morphTargetDictionary)
+            .filter((name) => /mouth|jaw|viseme|open|aa|ah|あ|口/i.test(name))
+            .forEach((name) => {
+              mouthTargets.push({
+                mesh: node,
+                index: node.morphTargetDictionary[name]
+              });
+            });
         }
 
-        object3D.traverse((obj) => {
-          const name = (obj.name || "").toLowerCase();
-
-          const nameLooksLikeMouth =
-            name.includes("mouth") ||
-            name.includes("jaw") ||
-            name.includes("kuchi") ||
-            name.includes("口") ||
-            name.includes("viseme");
-
-          if (nameLooksLikeMouth && !mouthTarget) {
-            mouthTarget = obj;
-            originalMouthScale = obj.scale.clone();
-            console.log("[MOUTH] mouth target found:", obj.name);
-          }
-
-          if (
-            obj.morphTargetInfluences &&
-            obj.morphTargetInfluences.length > 0 &&
-            !mouthTarget
-          ) {
-            mouthTarget = obj;
-            originalMouthScale = obj.scale.clone();
-            console.log("[MOUTH] morph target found:", obj.name);
-          }
-        });
-
-        if (mouthTarget) {
-          setStatus("モデル読込完了：口パク対象あり");
-        } else {
-          setStatus("モデル読込完了：簡易口パクを使用");
+        if (!fallbackPulseObject && node.name && /mouth|jaw|head|face|口|顔/i.test(node.name)) {
+          fallbackPulseObject = node;
         }
       });
 
-      character.addEventListener("model-error", () => {
-        setStatus("モデル読込エラー：GLBパスを確認してください");
+      if (!fallbackPulseObject) fallbackPulseObject = characterEl.object3D;
+
+      if (mouthTargets.length > 0) {
+        statusText.textContent = `モデル読込完了: 口パク候補 ${mouthTargets.length} 件`;
+      } else {
+        statusText.textContent = "モデル読込完了: 簡易口パクを使用";
+      }
+    }
+
+    function setMouth(value) {
+      const amount = Math.max(0, Math.min(1, value));
+      mouthTargets.forEach((target) => {
+        target.mesh.morphTargetInfluences[target.index] = amount;
       });
+
+      if (mouthTargets.length === 0 && fallbackPulseObject) {
+        const scale = 1 + amount * 0.02;
+        fallbackPulseObject.scale.set(scale, 1 + amount * 0.012, scale);
+      }
     }
 
     function startMouthMotion() {
-      let t = 0;
-
-      function animate() {
-        if (!speaking) return;
-
-        t += 0.18;
-
-        const open = (Math.sin(t * 4.0) + 1) / 2;
-        const smallOpen = 1 + open * 0.22;
-
-        if (mouthTarget) {
-          if (
-            mouthTarget.morphTargetInfluences &&
-            mouthTarget.morphTargetInfluences.length > 0
-          ) {
-            mouthTarget.morphTargetInfluences[0] = open;
-          } else if (originalMouthScale) {
-            mouthTarget.scale.y = originalMouthScale.y * smallOpen;
-          }
-        }
-
-        /*
-          口パーツが見つからない場合でも、
-          キャラクター全体を軽くうなずかせて
-          話している感じを出します。
-        */
-        const nod = Math.sin(t * 1.2) * 2.5;
-        if (character) {
-          character.setAttribute("rotation", `${nod} 180 0`);
-        }
-
-        requestAnimationFrame(animate);
-      }
-
-      animate();
+      stopMouthMotion();
+      const startedAt = performance.now();
+      mouthTimer = window.setInterval(() => {
+        const t = (performance.now() - startedAt) / 1000;
+        const value = speaking ? 0.18 + Math.abs(Math.sin(t * 13.5)) * 0.82 : 0;
+        setMouth(value);
+      }, 50);
     }
 
-    function resetMouth() {
-      if (mouthTarget && originalMouthScale) {
-        if (
-          mouthTarget.morphTargetInfluences &&
-          mouthTarget.morphTargetInfluences.length > 0
-        ) {
-          mouthTarget.morphTargetInfluences[0] = 0;
-        } else {
-          mouthTarget.scale.copy(originalMouthScale);
-        }
-      }
-
-      if (character) {
-        character.setAttribute("rotation", "0 180 0");
-      }
+    function stopMouthMotion() {
+      if (mouthTimer) window.clearInterval(mouthTimer);
+      mouthTimer = null;
+      setMouth(0);
     }
 
-    /* =========================================================
-       iOS audio unlock
-    ========================================================= */
-    document.body.addEventListener(
-      "click",
-      () => {
-        if ("speechSynthesis" in window) {
-          const dummy = new SpeechSynthesisUtterance("");
-          window.speechSynthesis.speak(dummy);
-          window.speechSynthesis.cancel();
-        }
+    function stopSpeak() {
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      speaking = false;
+      stopMouthMotion();
+    }
 
-        forceShowCameraVideo();
-      },
-      { once: false }
-    );
-
-    /* =========================================================
-       Camera black screen fix
-    ========================================================= */
-    function forceShowCameraVideo() {
-      const videos = Array.from(document.querySelectorAll("video"));
-
-      if (videos.length === 0) {
-        console.log("[CAMERA_FIX] video not found yet");
-        setStatus("カメラ映像を確認中...");
+    function speak() {
+      stopSpeak();
+      const content = contents[currentLang];
+      if (!("speechSynthesis" in window)) {
+        statusText.textContent = "このブラウザは音声読み上げに対応していません";
         return;
       }
 
-      videos.forEach((video, index) => {
-        video.setAttribute("playsinline", "");
-        video.setAttribute("webkit-playsinline", "");
-        video.setAttribute("muted", "");
-        video.setAttribute("autoplay", "");
+      const utterance = new SpeechSynthesisUtterance(content.text);
+      utterance.lang = content.langCode;
+      utterance.rate = currentLang === "ja" ? 0.92 : 0.88;
+      utterance.pitch = 1.05;
+      utterance.onstart = () => {
+        speaking = true;
+        startMouthMotion();
+        statusText.textContent = `音声説明中: ${content.label}`;
+      };
+      utterance.onend = () => {
+        speaking = false;
+        stopMouthMotion();
+        statusText.textContent = "音声説明が終了しました";
+      };
+      utterance.onerror = () => {
+        speaking = false;
+        stopMouthMotion();
+        statusText.textContent = "音声エラー。もう一度お試しください";
+      };
 
-        video.style.position = "fixed";
-        video.style.top = "0";
-        video.style.left = "0";
-        video.style.width = "100vw";
-        video.style.height = "100vh";
-        video.style.objectFit = "cover";
-        video.style.zIndex = "0";
-        video.style.display = "block";
-        video.style.opacity = "1";
-        video.style.visibility = "visible";
-        video.style.background = "transparent";
-
-        console.log("[CAMERA_FIX] video forced visible", {
-          index,
-          videoWidth: video.videoWidth,
-          videoHeight: video.videoHeight,
-          readyState: video.readyState,
-          paused: video.paused,
-          display: video.style.display,
-          visibility: video.style.visibility,
-          opacity: video.style.opacity
-        });
-
-        if (video.paused) {
-          video.play().catch(err => {
-            console.warn("[CAMERA_FIX] video play failed", err);
-          });
-        }
-      });
-
-      const canvases = Array.from(document.querySelectorAll("canvas"));
-      canvases.forEach((canvas, index) => {
-        canvas.style.position = "fixed";
-        canvas.style.top = "0";
-        canvas.style.left = "0";
-        canvas.style.width = "100vw";
-        canvas.style.height = "100vh";
-        canvas.style.zIndex = "1";
-        canvas.style.background = "transparent";
-        console.log("[CAMERA_FIX] canvas adjusted", index);
-      });
-
-      const scene = document.querySelector("a-scene");
-      if (scene) {
-        scene.style.background = "transparent";
-        scene.style.zIndex = "1";
-      }
-
-      const v = videos[0];
-      if (v && v.videoWidth > 0 && v.videoHeight > 0) {
-        setStatus("カメラ映像表示中");
-      }
+      window.speechSynthesis.speak(utterance);
     }
 
-    window.addEventListener("resize", () => {
-      setTimeout(forceShowCameraVideo, 300);
+    characterEl.addEventListener("model-loaded", normalizeCharacterModel);
+    characterEl.addEventListener("model-error", (event) => {
+      console.error("GLB model error", event.detail);
+      statusText.textContent = "GLBモデルを読み込めませんでした: assets/rainbow_plan_character.glb";
     });
 
-    window.addEventListener("orientationchange", () => {
-      setTimeout(forceShowCameraVideo, 500);
-      setTimeout(forceShowCameraVideo, 1500);
+    document.getElementById("startButton").addEventListener("click", () => {
+      document.getElementById("startPanel").style.display = "none";
+      applyContent(currentLang);
+      forceCameraLayout();
+      window.setTimeout(forceCameraLayout, 250);
+      window.setTimeout(forceCameraLayout, 1000);
+      statusText.textContent = "Hiroマーカーをカメラに映してください";
     });
 
-    /* =========================================================
-       Status helper
-    ========================================================= */
-    function setStatus(message) {
-      if (statusBox) {
-        statusBox.textContent = message;
-      }
-      console.log("[STATUS]", message);
-    }
+    document.querySelectorAll("[data-lang]").forEach((button) => {
+      button.addEventListener("click", () => {
+        applyContent(button.dataset.lang);
+        if (speaking) speak();
+      });
+    });
+
+    document.getElementById("speakBtn").addEventListener("click", speak);
+    document.getElementById("stopBtn").addEventListener("click", () => {
+      stopSpeak();
+      statusText.textContent = "音声を停止しました";
+    });
+
+    const markerEl = document.getElementById("marker");
+    let markerSeenCount = 0;
+    let markerLostCount = 0;
+
+    markerEl.addEventListener("markerFound", () => {
+      markerSeenCount += 1;
+      statusText.textContent = `マーカーを認識しました (${markerSeenCount})`;
+    });
+
+    markerEl.addEventListener("markerLost", () => {
+      markerLostCount += 1;
+      statusText.textContent = `マーカー追跡が外れました (${markerLostCount})`;
+    });
+
+    window.addEventListener("pagehide", stopSpeak);
+    window.addEventListener("resize", forceCameraLayout);
+    window.addEventListener("orientationchange", () => window.setTimeout(forceCameraLayout, 250));
+    arScene.addEventListener("loaded", forceCameraLayout);
+    arScene.addEventListener("render-target-loaded", forceCameraLayout);
+    applyContent("ja");
   </script>
 </body>
 </html>
