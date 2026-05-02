@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#11281f" />
+  <title>長井市レインボープラン WebAR</title>
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --leaf: #2fc26b;
+      --leaf-deep: #0f5b39;
+      --soil: #5d4934;
+      --cream: #f5f0df;
+      --ink: #f9fff8;
+      --panel: rgba(9, 22, 18, 0.76);
+      --line: rgba(255, 255, 255, 0.22);
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #050806;
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Yu Gothic UI", Meiryo, sans-serif;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    a-scene {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #startPanel {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background:
+        linear-gradient(180deg, rgba(12, 45, 36, 0.92), rgba(3, 6, 5, 0.9)),
+        url("design/rainbow_plan_sustainable_future_interface.png") center / cover;
+    }
+
+    #startPanel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.34);
+    }
+
+    #startCard {
+      position: relative;
+      width: min(560px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      background: rgba(8, 24, 18, 0.86);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.36);
+      backdrop-filter: blur(12px);
+    }
+
+    #startCard h1 {
+      margin: 0 0 10px;
+      font-size: clamp(24px, 6vw, 38px);
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    #startCard p {
+      margin: 10px 0 0;
+      color: rgba(249, 255, 248, 0.88);
+      font-size: 15px;
+      line-height: 1.75;
+    }
+
+    #startActions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .primaryButton,
+    .secondaryLink {
+      min-height: 48px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .primaryButton {
+      border: 0;
+      color: #052516;
+      background: var(--leaf);
+    }
+
+    .secondaryLink {
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    #status {
+      position: fixed;
+      top: max(10px, env(safe-area-inset-top));
+      left: 10px;
+      right: 10px;
+      z-index: 12;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    #statusText,
+    #markerBadge {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.5);
+      font-size: 12px;
+      line-height: 1.35;
+      backdrop-filter: blur(8px);
+    }
+
+    #markerBadge {
+      white-space: nowrap;
+      color: #0b2518;
+      background: rgba(47, 194, 107, 0.9);
+      font-weight: 700;
+    }
+
+    #ui {
+      position: fixed;
+      left: 10px;
+      right: 10px;
+      bottom: max(10px, env(safe-area-inset-bottom));
+      z-index: 11;
+      display: grid;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    #controls {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      pointer-events: auto;
+      scrollbar-width: none;
+    }
+
+    #controls::-webkit-scrollbar {
+      display: none;
+    }
+
+    .btn {
+      flex: 0 0 auto;
+      min-width: 44px;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 11px;
+      color: var(--ink);
+      background: rgba(0, 0, 0, 0.54);
+      font-size: 13px;
+      font-weight: 700;
+      backdrop-filter: blur(8px);
+    }
+
+    .btn.active {
+      color: #062315;
+      background: var(--leaf);
+      border-color: rgba(47, 194, 107, 0.9);
+    }
+
+    #captionPlate {
+      height: min(34vh, 190px);
+      min-height: 132px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      pointer-events: auto;
+    }
+
+    #captionHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      height: 38px;
+      padding: 0 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      color: rgba(249, 255, 248, 0.86);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    #captionText {
+      padding: 12px 14px 18px;
+      white-space: pre-line;
+      font-size: 15px;
+      line-height: 1.75;
+      animation: scrollUp 42s linear infinite;
+    }
+
+    @keyframes scrollUp {
+      0% { transform: translateY(100%); }
+      8% { transform: translateY(0); }
+      92% { transform: translateY(calc(-100% + 110px)); }
+      100% { transform: translateY(calc(-100% + 110px)); }
+    }
+
+    @media (min-width: 720px) {
+      #ui {
+        left: 24px;
+        right: auto;
+        width: min(520px, calc(100vw - 48px));
+      }
+
+      #status {
+        left: 24px;
+        right: 24px;
+      }
+
+      #startActions {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="startPanel">
+    <section id="startCard" aria-labelledby="startTitle">
+      <h1 id="startTitle">長井市レインボープラン WebAR</h1>
+      <p>カメラで Hiro マーカーを読み取ると、AR キャラクターがレインボープランを紹介します。字幕と言語切り替え、音声読み上げ、簡易的な口パクに対応しています。</p>
+      <p>スマートフォンでは HTTPS 配信で開いてください。起動後、別画面や印刷物に表示した Hiro マーカーをカメラに映します。</p>
+      <div id="startActions">
+        <button id="startButton" class="primaryButton" type="button">ARを開始</button>
+        <a class="secondaryLink" href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" target="_blank" rel="noopener">Hiroマーカーを開く</a>
+      </div>
+    </section>
+  </div>
+
+  <div id="status" aria-live="polite">
+    <div id="statusText">準備中</div>
+    <div id="markerBadge">Hiro marker</div>
+  </div>
+
+  <main id="ui">
+    <div id="controls" aria-label="操作">
+      <button class="btn active" type="button" data-lang="ja">日本語</button>
+      <button class="btn" type="button" data-lang="en">English</button>
+      <button class="btn" type="button" data-lang="zh">中文</button>
+      <button class="btn" type="button" data-lang="ko">한국어</button>
+      <button class="btn" type="button" id="speakBtn">音声</button>
+      <button class="btn" type="button" id="stopBtn">停止</button>
+    </div>
+    <section id="captionPlate" aria-label="説明字幕">
+      <div id="captionHeader">
+        <span id="captionTitle">レインボープランとは</span>
+        <span id="captionLang">日本語</span>
+      </div>
+      <div id="captionText"></div>
+    </section>
+  </main>
+
+  <a-scene
+    embedded
+    renderer="logarithmicDepthBuffer: true; antialias: true; alpha: true"
+    vr-mode-ui="enabled: false"
+    arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;">
+
+    <a-assets timeout="30000">
+      <a-asset-item id="rainbowModel" src="assets/rainbow_plan_character.glb"></a-asset-item>
+    </a-assets>
+
+    <a-marker preset="hiro" id="marker">
+      <a-entity id="root" position="0 0 0">
+        <a-entity
+          id="character"
+          gltf-model="#rainbowModel"
+          position="0 0 0"
+          rotation="0 0 0"
+          scale="0.35 0.35 0.35">
+        </a-entity>
+
+        <a-plane
+          id="arPlate"
+          position="0 1.25 -0.55"
+          rotation="-15 0 0"
+          width="2.25"
+          height="0.88"
+          color="#0b2b22"
+          opacity="0.68">
+        </a-plane>
+        <a-text
+          id="arText"
+          value=""
+          position="0 0.92 -0.54"
+          rotation="-15 0 0"
+          align="center"
+          width="1.9"
+          color="#ffffff"
+          wrap-count="22">
+        </a-text>
+      </a-entity>
+    </a-marker>
+
+    <a-entity camera></a-entity>
+  </a-scene>
+
+  <script>
+    const contents = {
+      ja: {
+        langCode: "ja-JP",
+        label: "日本語",
+        title: "レインボープランとは",
+        text: `こんにちは。私は長井市の循環を案内するレインボープランのガイドです。
+
+レインボープランは、正式には「台所と農業をつなぐながい計画」と呼ばれています。
+
+家庭の台所から出る生ごみを、ただ捨てるのではなく、地域の資源として分別して集めます。集められた生ごみはコンポストセンターでたい肥になり、長井市の田畑へ戻されます。
+
+そのたい肥で土が豊かになり、米や野菜が育ち、また地域の食卓へ戻ってきます。
+
+台所、たい肥、土、農産物、そして暮らしが、ひとつの輪としてつながる。これがレインボープランの大きな特徴です。
+
+この取り組みは、ごみを減らすだけではありません。市民、農家、行政が力を合わせ、地域の自然と暮らしを未来へつなぐまちづくりでもあります。
+
+小さな分別が、土を育て、食を育て、長井市の未来を育てています。`
+      },
+      en: {
+        langCode: "en-US",
+        label: "English",
+        title: "What is the Rainbow Plan?",
+        text: `Hello. I am your guide to Nagai City's Rainbow Plan.
+
+The Rainbow Plan is officially known as Nagai's plan to connect the kitchen and agriculture.
+
+Food waste from household kitchens is not simply thrown away. It is sorted, collected as a local resource, and turned into compost at the city compost center.
+
+That compost returns to fields in Nagai, enriching the soil. Rice and vegetables grown in that soil come back to local tables.
+
+In this way, kitchens, compost, soil, farm products, and daily life are connected in one circular system.
+
+The Rainbow Plan is more than waste reduction. It is a community project created by citizens, farmers, and the local government working together.
+
+Each small act of sorting food waste helps nurture the soil, support local food, and pass Nagai's environment on to the future.`
+      },
+      zh: {
+        langCode: "zh-CN",
+        label: "中文",
+        title: "什么是彩虹计划？",
+        text: `大家好。我是介绍长井市彩虹计划的 AR 向导。
+
+彩虹计划的正式名称是“连接厨房与农业的长井计划”。
+
+家庭厨房产生的厨余垃圾不会被简单丢弃，而是作为地区资源进行分类收集，并在堆肥中心制成堆肥。
+
+这些堆肥会回到长井市的农田，帮助培育肥沃的土壤。由这种土壤种出的米和蔬菜，又会回到当地人的餐桌。
+
+也就是说，厨房、堆肥、土壤、农产品和日常生活，被连接成一个循环。
+
+彩虹计划不只是减少垃圾的活动，也是市民、农家和行政共同推进的地方建设。
+
+每一次小小的分类，都会滋养土壤，支持当地食物，并把长井市的自然与生活传向未来。`
+      },
+      ko: {
+        langCode: "ko-KR",
+        label: "한국어",
+        title: "레인보우 플랜이란?",
+        text: `안녕하세요. 저는 나가이시의 레인보우 플랜을 소개하는 AR 안내자입니다.
+
+레인보우 플랜의 정식 명칭은 “부엌과 농업을 잇는 나가이 계획”입니다.
+
+가정의 부엌에서 나오는 음식물 쓰레기를 단순히 버리지 않고, 지역의 자원으로 분리해 모읍니다. 모인 음식물 쓰레기는 퇴비 센터에서 퇴비가 됩니다.
+
+그 퇴비는 나가이시의 논과 밭으로 돌아가 건강한 흙을 만들고, 그 흙에서 자란 쌀과 채소는 다시 지역의 식탁으로 돌아옵니다.
+
+이렇게 부엌, 퇴비, 흙, 농산물, 그리고 생활이 하나의 순환으로 이어집니다.
+
+레인보우 플랜은 쓰레기를 줄이는 활동을 넘어, 시민과 농가, 행정이 함께 만드는 지역 만들기입니다.
+
+작은 분리배출이 흙을 기르고, 먹거리를 기르며, 나가이시의 미래를 기르고 있습니다.`
+      }
+    };
+
+    let currentLang = "ja";
+    let speaking = false;
+    let mouthTimer = null;
+    let mouthTargets = [];
+    let fallbackPulseObject = null;
+
+    const captionText = document.getElementById("captionText");
+    const captionTitle = document.getElementById("captionTitle");
+    const captionLang = document.getElementById("captionLang");
+    const arText = document.getElementById("arText");
+    const statusText = document.getElementById("statusText");
+    const characterEl = document.getElementById("character");
+
+    function applyContent(lang) {
+      currentLang = lang;
+      const content = contents[lang];
+      captionTitle.textContent = content.title;
+      captionLang.textContent = content.label;
+      captionText.style.animation = "none";
+      captionText.textContent = content.text;
+      void captionText.offsetWidth;
+      captionText.style.animation = "scrollUp 42s linear infinite";
+      arText.setAttribute("value", `${content.title}\n${content.text.slice(0, 115)}...`);
+      document.querySelectorAll("[data-lang]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.lang === lang);
+      });
+    }
+
+    function findMouthControls() {
+      mouthTargets = [];
+      fallbackPulseObject = null;
+      const object3D = characterEl.getObject3D("mesh");
+      if (!object3D) return;
+
+      object3D.traverse((node) => {
+        if (node.isMesh && node.morphTargetDictionary && node.morphTargetInfluences) {
+          Object.keys(node.morphTargetDictionary)
+            .filter((name) => /mouth|jaw|viseme|open|aa|ah|あ|口/i.test(name))
+            .forEach((name) => {
+              mouthTargets.push({
+                mesh: node,
+                index: node.morphTargetDictionary[name]
+              });
+            });
+        }
+
+        if (!fallbackPulseObject && node.name && /mouth|jaw|head|face|口|顔/i.test(node.name)) {
+          fallbackPulseObject = node;
+        }
+      });
+
+      if (!fallbackPulseObject) fallbackPulseObject = characterEl.object3D;
+
+      if (mouthTargets.length > 0) {
+        statusText.textContent = `モデル読込完了: 口パク候補 ${mouthTargets.length} 件`;
+      } else {
+        statusText.textContent = "モデル読込完了: 簡易口パクを使用";
+      }
+    }
+
+    function setMouth(value) {
+      const amount = Math.max(0, Math.min(1, value));
+      mouthTargets.forEach((target) => {
+        target.mesh.morphTargetInfluences[target.index] = amount;
+      });
+
+      if (mouthTargets.length === 0 && fallbackPulseObject) {
+        const scale = 1 + amount * 0.02;
+        fallbackPulseObject.scale.set(scale, 1 + amount * 0.012, scale);
+      }
+    }
+
+    function startMouthMotion() {
+      stopMouthMotion();
+      const startedAt = performance.now();
+      mouthTimer = window.setInterval(() => {
+        const t = (performance.now() - startedAt) / 1000;
+        const value = speaking ? 0.18 + Math.abs(Math.sin(t * 13.5)) * 0.82 : 0;
+        setMouth(value);
+      }, 50);
+    }
+
+    function stopMouthMotion() {
+      if (mouthTimer) window.clearInterval(mouthTimer);
+      mouthTimer = null;
+      setMouth(0);
+    }
+
+    function stopSpeak() {
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      speaking = false;
+      stopMouthMotion();
+    }
+
+    function speak() {
+      stopSpeak();
+      const content = contents[currentLang];
+      if (!("speechSynthesis" in window)) {
+        statusText.textContent = "このブラウザは音声読み上げに対応していません";
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(content.text);
+      utterance.lang = content.langCode;
+      utterance.rate = currentLang === "ja" ? 0.92 : 0.88;
+      utterance.pitch = 1.05;
+      utterance.onstart = () => {
+        speaking = true;
+        startMouthMotion();
+        statusText.textContent = `音声説明中: ${content.label}`;
+      };
+      utterance.onend = () => {
+        speaking = false;
+        stopMouthMotion();
+        statusText.textContent = "音声説明が終了しました";
+      };
+      utterance.onerror = () => {
+        speaking = false;
+        stopMouthMotion();
+        statusText.textContent = "音声エラー。もう一度お試しください";
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    characterEl.addEventListener("model-loaded", findMouthControls);
+    characterEl.addEventListener("model-error", () => {
+      statusText.textContent = "GLBモデルを読み込めませんでした";
+    });
+
+    document.getElementById("startButton").addEventListener("click", () => {
+      document.getElementById("startPanel").style.display = "none";
+      applyContent(currentLang);
+      statusText.textContent = "Hiroマーカーをカメラに映してください";
+    });
+
+    document.querySelectorAll("[data-lang]").forEach((button) => {
+      button.addEventListener("click", () => {
+        applyContent(button.dataset.lang);
+        if (speaking) speak();
+      });
+    });
+
+    document.getElementById("speakBtn").addEventListener("click", speak);
+    document.getElementById("stopBtn").addEventListener("click", () => {
+      stopSpeak();
+      statusText.textContent = "音声を停止しました";
+    });
+
+    document.getElementById("marker").addEventListener("markerFound", () => {
+      statusText.textContent = "マーカーを認識しました";
+    });
+
+    document.getElementById("marker").addEventListener("markerLost", () => {
+      statusText.textContent = "Hiroマーカーをもう一度カメラに映してください";
+    });
+
+    window.addEventListener("pagehide", stopSpeak);
+    applyContent("ja");
+  </script>
+</body>
+</html>
